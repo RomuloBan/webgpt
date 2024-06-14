@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatGPT Local 100% privado, gratis y maravilloso</title>
+		<style>
+			body {
+				font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+				margin: 0;
+				padding: 0;
+				background: #f0f0f0;
+				display: grid;
+				place-content: center;
+				height: 100dvh;
+			}
+
+			main {
+				width: 400px;
+				max-width: 100%;
+				height: 70vh;
+				background: #fff;
+				border: 1px solid #ccc;
+				border-radius: 4px;
+				box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+				padding: 8px;
+				margin-bottom: 16px;
+				overflow-y: auto;
+				scroll-behavior: smooth;
+			}
+
+			ul {
+				display: flex;
+				flex-direction: column;
+				list-style: none;
+				padding: 0;
+			}
+
+			.message {
+				display: flex;
+				flex-direction: column;
+				gap: 4px;
+				margin: 4px 0;
+				padding: 4px 8px;
+
+				p {
+					padding: 4px 8px;
+					border-radius: 4px;
+					margin-top: 4px;
+				}
+
+				> span:first-child {
+					width: 36px;
+					height: 36px;
+					background: #eee;
+					font-size: 12px;
+					font-weight: 500;
+					display: flex;
+					justify-content: center;
+					align-items: center;
+					border-radius: 99px;
+				}
+				> span:last-child {
+					padding: 4px 8px;
+					border-radius: 4px;
+				}
+				&.user {
+					align-self: flex-end;
+					align-items: flex-end;
+					span, p {
+						background: #d6ebf1;
+					}
+				}
+				&.bot {
+					align-self: flex-start;
+					span, p {
+						background: rgb(211, 239, 211);
+					}
+				}
+			}
+			form {
+				display: flex;
+				input {
+					flex-grow: 1;
+					border-radius: 99px;
+					border: 0;
+					padding: 8px;
+					margin-right: 8px;
+					border: 1px solid #ccc;
+				}
+				button {
+					border: 0;
+					background: #007bff;
+					color: #fff;
+					padding: 8px;
+					border-radius: 6px;
+					cursor: pointer;
+					transition: background 0.3s ease;
+					&[disabled] {
+						background: #ccc;
+						opacity: .6;
+						pointer-events: none;
+					}
+					&:hover {
+						background: #0056b3;
+					}
+				}
+			}
+		</style>
+</head>
+<script type="module">
+	import { CreateMLCEngine } from 'https://esm.run/@mlc-ai/web-llm'
+
+	const SELECTED_MODEL = 'gemma-2b-it-q4f32_1-MLC'
+	const engine = CreateMLCEngine(
+		SELECTED_MODEL,
+		{
+			initProgressCallback: (progress) => {
+				console.log('initProgressCallback', progress)
+			},
+		}
+	)
+
+	const $ = (selector) => document.querySelector(selector)
+	const $$ = (selector) => document.querySelectorAll(selector)
+	const $form = $('form')
+	const $input = $('input')
+	const $template = $('#message-template')
+	const $mesages = $('ul')
+	const $container = $('main')
+	const $button = $('button')
+
+	$form.addEventListener('submit', (e) => {
+		e.preventDefault();
+		const messageText = $input.value.trim()
+		if (messageText !== '') {
+			// añadimos el mensaje del usuario
+			$input.value = ''
+			addMessage(messageText, 'user')
+			// deshabilitamos el botón
+			$button.setAttribute('disabled', true)
+			// simulamos la respuesta del bot
+			setTimeout(() => {
+				addMessage('Esta es la respuesta del bot', 'bot')
+				$button.removeAttribute('disabled')
+			}, 1000)
+		}
+	});
+
+	function addMessage(message, type = 'user') {
+		const $clone = $template.content.cloneNode(true)
+		const $message = $clone.querySelector('.message')
+		$message.classList.add(type)
+		$message.querySelector('span').textContent = type === 'user' ? 'Tú' : 'GPT'
+		$message.querySelector('p').textContent = message
+		$mesages.appendChild($clone)
+		$container.scrollTop = $container.scrollHeight
+	}
+</script>
+<body>
+    <main>
+        <ul>
+            <li class="message bot">
+                <span>GPT</span>
+								<p>Esta es la pregunta del bot</p>
+            </li>
+            <li class="message user">
+                <span>Tú</span>
+								<p>Esta es la respuesta del usuario</p>
+            </li>
+            <li class="message user">
+                <span>Tú</span>
+								<p>Esta es la respuesta del usuario y es una respuesta muuu larga para comprobar que no se rompe nada</p>
+            </li>
+        </ul>
+    </main>
+		<form>
+			<input id="message" placeholder="Escribe tu mensaje aquí ...">
+			<button>Enviar</button>
+		</form>
+
+		<template id="message-template">
+			<li class="message">
+				<span></span>
+				<p></p>
+			</li>
+		</template>
+</body>
+</html>
